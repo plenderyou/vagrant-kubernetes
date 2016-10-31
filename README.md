@@ -5,6 +5,7 @@ A Kubernetes cluster on vagrant
 
 1. vagrant
 1. VirtualBox
+1. ansible
 
 ## Set up
 
