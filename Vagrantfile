@@ -1,20 +1,21 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
+require_relative 'customise'
 
 Vagrant.configure("2") do |config|
 
-  ipBase = "172.16.99"
-  nodes = 3
 
-
-  (0..nodes).each do |i|
+  (0..NODES).each do |i|
+    masterNodeName = CLUSTER_PREFIX + "master"
     if i == 0
-      name="tmaster"
+      name=CLUSTER_PREFIX + "master"
+      memory=MASTER_MEMORY
     else
-      name="tnode-#{i}"
+      name=CLUSTER_PREFIX + "node-#{i}"
+      memory=NODE_MEMORY
     end
 
-    ip = "#{ipBase}.1#{i}"
+    ip = IP_BASE + ".1#{i}"
     config.vm.define "#{name}" do |node|
       node.vm.box = "ubuntu/xenial64"
       node.vm.hostname = "#{name}"
@@ -23,13 +24,13 @@ Vagrant.configure("2") do |config|
         # Display the VirtualBox GUI when booting the machine
         # vb.gui = true
           # Customize the amount of memory on the VM:
-        vb.memory = "1024"
-        vb.name = "t#{name}-xenial-64"
+        vb.memory = "#{memory}"
+        vb.name = "#{name}-xenial-64"
       end
 
 
 
-      if i == nodes
+      if i == NODES
 
         node.vm.provision "ansible" do |ansible|
             ansible.playbook = "setup.yml"
@@ -42,7 +43,7 @@ Vagrant.configure("2") do |config|
         node.vm.provision "ansible" do |ansible|
             ansible.playbook = "provision.yml"
             ansible.sudo = true
-            ansible.extra_vars = { "LOCAL_IP" => ENV['HOSTNAME'], "username" => ENV['USER'], "ansible_python_interpreter" => "/usr/bin/python2.7", "ipaddress" => "#{ip}" }
+            ansible.extra_vars = { "LOCAL_IP" => ENV['HOSTNAME'], "username" => ENV['USER'], "ansible_python_interpreter" => "/usr/bin/python2.7", "masterNodeName" => "#{masterNodeName}" }
             ansible.verbose = "v"
             ansible.limit = "all"
         end

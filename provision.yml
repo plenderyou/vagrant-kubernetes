@@ -5,5 +5,5 @@
 
   roles:
     - { role: "base" }
-    - { role: "master", when: inventory_hostname == "tmaster" }
-    - { role: "node", when: inventory_hostname != "tmaster" }
+    - { role: "master", when: inventory_hostname == masterNodeName }
+    - { role: "node", when: inventory_hostname != masterNodeName }

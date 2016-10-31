@@ -1,2 +1,7 @@
 *.log
 *.retry
+customise.rb
+
+admin.conf
+kubeinit
+.vagrant

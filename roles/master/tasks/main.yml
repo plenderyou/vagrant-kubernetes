@@ -10,7 +10,7 @@
 
 - name: Set --advertise-address flag in kube-apiserver static pod manifest (workaround for https://github.com/kubernetes/kubernetes/issues/34101)
   become: yes
-  shell: "jq '.spec.containers[0].command |= .+ [\"--advertise-address={{  hostvars['tmaster']['ansible_all_ipv4_addresses'][1] }}\"]' /etc/kubernetes/manifests/kube-apiserver.json > /tmp/kube-apiserver.json && mv /tmp/kube-apiserver.json /etc/kubernetes/manifests/kube-apiserver.json"
+  shell: "jq '.spec.containers[0].command |= .+ [\"--advertise-address={{  hostvars[masterNodeName]['ansible_all_ipv4_addresses'][1] }}\"]' /etc/kubernetes/manifests/kube-apiserver.json > /tmp/kube-apiserver.json && mv /tmp/kube-apiserver.json /etc/kubernetes/manifests/kube-apiserver.json"
   when: admin.stat.exists == False
 
 - name: Set --proxy-mode flag in kube-proxy daemonset (workaround for https://github.com/kubernetes/kubernetes/issues/34101)
