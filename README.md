@@ -9,11 +9,11 @@ A Kubernetes cluster on vagrant
 
 ## Set up
 
-1. Clone the repostory - git clone https://github.com/plenderyou/vagrant-kubernetes.git
+1. Clone the repository - `git clone https://github.com/plenderyou/vagrant-kubernetes.git`
 2. Go to the cloned directory
 3. Create a customise.rb file based on the customise.rb.sample
-4. Make sure you have the vagrant box installed - **vagrant box add ubuntu/xenial64**
-4. vagrant up - this can take some time
+4. Make sure you have the vagrant box installed: `vagrant box add ubuntu/xenial64`
+4. `vagrant up` - this can take some time
 
 ## What happend?
 
@@ -47,10 +47,10 @@ A Kubernetes cluster on vagrant
 
 At this point if all has gone well you should have a working cluster
 
-If you log into the master and run **kubectl get pods --all-namespaces -o wide** you should see something like
+If you log into the master: `ansible ssh master`
+and run `kubectl get pods --all-namespaces -o wide` you should see something like:
 
 ```
-kubectl get pod --all-namespaces -o wide
 NAMESPACE     NAME                                READY     STATUS    RESTARTS   AGE       IP             NODE
 kube-system   etcd-jp-master                      1/1       Running   0          4m        172.16.99.10   jp-master
 kube-system   kube-apiserver-jp-master            1/1       Running   3          4m        172.16.99.10   jp-master
@@ -75,17 +75,22 @@ Each node is registered with the cluster.
 
 ## Using the cluster
 
-You can log onto the master or any node to use the cluster. All scripts are available in the /vagrant directory
+You can log onto the master or any node to use the cluster. All scripts are available in the `/vagrant` directory
 
-## Setup kubectl to run from the host
+## Setup kubectl to run from your host
 
-Follow the instructions [here ](http://kubernetes.io/docs/user-guide/prereqs/) to install kubectl
+Optionally, you can follow the instructions [here ](http://kubernetes.io/docs/user-guide/prereqs/) to install kubectl in your local host.
 
-Now use the admin.conf as the kube config
+Now use the `admin.conf` as the kube config
 
 ``` shell
-export KUBECONFIG=$PWD/admin.config
-kubectl get pod --all-namespaces should list the current pods
+export KUBECONFIG=$PWD/admin.conf
+```
+
+And for listing the current pods from your local host:
+
+``` shell
+kubectl get pod --all-namespaces
 ```
 
 ## Installing the kubernetes dashboard
@@ -97,18 +102,18 @@ curl https://rawgit.com/kubernetes/dashboard/master/src/deploy/kubernetes-dashbo
 
 ```
 
-hitting any node on port 32100 with the browser should bring up the dashboard.
+hitting any node on port [32100](http://172.16.99.10:32100/) with the browser should bring up the dashboard.
 
 ## Using docker in the cluster
 
-If you wish to build images on the cluster hosts you need to have a docker registry, the scripts for this are in the extras/registry sub-directory
+If you wish to build images on the cluster hosts you need to have a docker registry, the scripts for this are in the `extras/registry` sub-directory
 
 ``` shell
 kubectl create -f registry.yml
 kubectl create -f registry-service.yml
 ```
 
-This will make the registry available on the localhost:32000 on each node
+This will make the registry available on the `localhost:32000` on each node
 
 You can now go onto the master or node and run docker if the user is a member of the docker group.
 
@@ -116,7 +121,7 @@ You can now go onto the master or node and run docker if the user is a member of
 
 The hello world sample is a simple node server that prints out the headers and the hostname
 
-Go to the /vagrant/extras/hello-world directory
+Go to the `/vagrant/extras/hello-world` directory
 
 ### Build that docker images
 ``` shell
@@ -143,7 +148,7 @@ and curl one of the ip addresses on port 8080
 We're going to create and ingress point from the outside world using an ingress controller.
 **N.B. There are some limitations with this at the moment as the CNI network does not support hostPort definitions**
 
-Go to the /vagrant/extras/ingress directory and create the ingress replication controller
+Go to the `/vagrant/extras/ingress` directory and create the ingress replication controller
 
 ``` shell
 kubectl create -f nginx-ingress-rc.yml
@@ -154,11 +159,11 @@ kubectl create -f nginx-ingress-rc.yml
 Now go back to the hello-world directory and create a headless service and an ingress
 
 ```shell
-kubectl create -f hellow-world-svc.yml
+kubectl create -f hello-world-svc.yml
 kubectl create -f hello-world-ingress.yml
 ```
 
-the ingress point should set up a name-based virtual host on the nginx server for host 'hello-world'
+the ingress point should set up a name-based virtual host on the **nginx server** for host 'hello-world'
 
 Find out the ip address if the ingress controller using kubectl (or the dashboard)
 ```shell
@@ -172,13 +177,14 @@ Then curl this ip overriding the resolve on curl.
 
 Calling this multiple times will show that the loadbalancing is working.
 
-### Work around for lack of hostPort funtionality
+### Work around for lack of hostPort functionality
+
 I haven't spent a lot of time looking for solutions to the ingress issue, however there are a number of alternatives that should be explored
 
-1. Use iptables to forward the traffic on the hosts port 80 to the ingress controller (this should probably use a secondary ip address)
+1. Use `iptables` to forward the traffic on the hosts port 80 to the ingress controller (this should probably use a secondary ip address)
 2. Use a proxy on a host to forward the traffic to the ingress controller.
 
 Option 2 is the simplest in the ingress directory there is a script called balance.sh that uses the balance loadbalancer to forward traffic.
-This requires balance to be installed on the machine you choose ```apt-get install balance```
+This requires balance to be installed on the machine you choose `apt-get install balance`
 
 Then you can use a similar curl command from your host machine replacing the ip address with the machines ip address.
