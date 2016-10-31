@@ -1,0 +1,9 @@
+---
+
+- name: Get the status of the kubelet.conf
+  stat: path=/etc/kubernetes/kubelet.conf
+  register: kubelet
+
+- name: Join the cluster
+  shell: "$(grep 'kubeadm join' /vagrant/kubeinit)"
+  when: kubelet.stat.exists == False

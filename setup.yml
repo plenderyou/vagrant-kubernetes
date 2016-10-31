@@ -1,0 +1,5 @@
+- hosts: all
+  become: true
+  gather_facts: no
+  tasks:
+   - raw: apt-get install -qq python2.7

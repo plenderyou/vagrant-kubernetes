@@ -1,0 +1,17 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: fred-ingres
+spec:
+  tls:
+  - hosts:
+    - fred
+    secretName: cafe-secret
+  rules:
+  - host: fred
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: fred-svc
+          servicePort: 80

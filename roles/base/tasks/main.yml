@@ -1,0 +1,47 @@
+---
+
+- name: Create the user
+  user: 'name="{{ username }}" state=present shell=/bin/bash'
+
+- name: Make the ssh login for the user
+  file: path="/home/{{ username }}/.ssh" mode=700 state=directory owner="{{ username }}" group="{{ username }}"
+
+- name: Copy the public key
+  copy: src="{{ lookup('env', 'HOME')}}/.ssh/id_rsa.pub" dest="/home/{{ username }}/.ssh/authorized_keys" mode=600  owner="{{ username }}" group="{{ username }}"
+
+- name: Give the user sudo
+  template: src="templates/sudoers.j2" dest="/etc/sudoers.d/{{ username }}" owner=root group=root mode=600
+
+- name: Make sure the host file is ok
+  lineinfile: line="{{ hostvars[item]['ansible_all_ipv4_addresses'][1] }} {{ item }}" state=present dest=/etc/hosts regexp="^{{ hostvars[item]['ansible_all_ipv4_addresses'][1] }}.*"
+  with_items: "{{ groups.all }}"
+
+- name: Remove the localhost for the host
+  lineinfile: regexp="^127\.0\.0\.1\s+{{ item }}" state=absent dest=/etc/hosts
+  with_items: "{{ groups.all }}"
+
+
+- name: add the key for the repo
+  apt_key: url=https://packages.cloud.google.com/apt/doc/apt-key.gpg state=present
+
+- name: Add the kubernetes repo
+  apt_repository: repo="deb http://apt.kubernetes.io/ kubernetes-xenial main" update_cache=yes
+
+- name: copy the clean-cluster script
+  copy: src=files/clean-k8s dest=/usr/local/bin/clean-cluster mode=755
+
+- name: install the software
+  apt: name="{{ item }}" state=present
+  with_items:
+    - docker.io
+    - kubelet
+    - kubeadm
+    - kubectl
+    - kubernetes-cni
+    - jq
+
+- name: Make the directory for the override
+  file: dest=/etc/systemd/system/kubelet.service.d state=directory mode=755 owner=root group=root
+
+- name: setup the host override
+  shell: printf '[Service]\nEnvironment="KUBELET_EXTRA_ARGS=--hostname-override=%s"\n' $(hostname -i) > /etc/systemd/system/kubelet.service.d/15-hostname-override.conf
